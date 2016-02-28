@@ -16,6 +16,14 @@
 
 using namespace v8;
 
+void Plus(const FunctionCallbackInfo<Value>& args) {
+    HandleScope scope(args.GetIsolate());
+    unsigned int a = args[0]->Uint32Value();
+    unsigned int b = args[1]->Uint32Value();
+    
+    LOGI("result = %d", a+b);
+    args.GetReturnValue().Set(Int32::New(args.GetIsolate(), a+b));
+}
 
 class ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
 public:
@@ -55,9 +63,12 @@ JNIEXPORT void JNICALL Java_com_example_hellov8_MainActivity_runJs(JNIEnv* env, 
         // Enter the context for compiling and running the hello world script.
         Context::Scope context_scope(context);
 
+        Handle<ObjectTemplate> global = ObjectTemplate::New(isolate);
+        global->Set(v8::String::NewFromUtf8(isolate,"plus"), FunctionTemplate::New(isolate, Plus));
+
         // Create a string containing the JavaScript source code.
         Local<String> source =
-            String::NewFromUtf8(isolate, "'Hello' + ', World!'",
+            String::NewFromUtf8(isolate, "plus(1,2);",
                                 NewStringType::kNormal).ToLocalChecked();
 
         // Compile the source code.
