@@ -17,6 +17,7 @@
 using namespace v8;
 
 void Plus(const FunctionCallbackInfo<Value>& args) {
+    LOGI("line:%d", __LINE__);
     HandleScope scope(args.GetIsolate());
     unsigned int a = args[0]->Uint32Value();
     unsigned int b = args[1]->Uint32Value();
@@ -57,29 +58,35 @@ JNIEXPORT void JNICALL Java_com_example_hellov8_MainActivity_runJs(JNIEnv* env, 
         // Create a stack-allocated handle scope.
         HandleScope handle_scope(isolate);
 
+        Handle<ObjectTemplate> global = ObjectTemplate::New(isolate);
+        global->Set(v8::String::NewFromUtf8(isolate,"plus"), FunctionTemplate::New(isolate, Plus));
+
         // Create a new context.
-        Local<Context> context = Context::New(isolate);
+        Local<Context> context = Context::New(isolate, NULL, global);
 
         // Enter the context for compiling and running the hello world script.
         Context::Scope context_scope(context);
 
-        Handle<ObjectTemplate> global = ObjectTemplate::New(isolate);
-        global->Set(v8::String::NewFromUtf8(isolate,"plus"), FunctionTemplate::New(isolate, Plus));
+        LOGI("line:%d", __LINE__);
 
         // Create a string containing the JavaScript source code.
         Local<String> source =
-            String::NewFromUtf8(isolate, "plus(1,2);",
+            String::NewFromUtf8(isolate, "'Hello' + 'World!'; plus(1,2);",
                                 NewStringType::kNormal).ToLocalChecked();
 
         // Compile the source code.
         Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+        LOGI("line:%d", __LINE__);
 
         // Run the script to get the result.
         Local<Value> result = script->Run(context).ToLocalChecked();
+        LOGI("line:%d", __LINE__);
 
         // Convert the result to an UTF8 string and print it.
+        /*
         String::Utf8Value utf8(result);
         LOGI("result:%s", *utf8);
+        */
     }
 
     // Dispose the isolate and tear down V8.
